@@ -1,3 +1,5 @@
+import del from 'del';
+
 import fs from 'fs';
 
 async function clean() {
@@ -15,6 +17,8 @@ import cleanCSS from 'gulp-clean-css';
 import preprocess from 'gulp-preprocess';
 import rename from 'gulp-rename';
 import browserSync from 'browser-sync';
+import fileInclude from 'gulp-file-include';
+
 
 const sass = gulpSass(dartSass);
 const bs = browserSync.create();
@@ -38,7 +42,10 @@ function styles() {
 }
 
 function html() {
-  return gulp.src('src/index.html')
+  return gulp.src('src/**/*.html')
+    .pipe(fileInclude({
+      basepath: 'src'
+    }))
     .pipe(preprocess())
     .pipe(gulp.dest('build'))
     .pipe(bs.stream());
@@ -86,7 +93,17 @@ function serve() {
   gulp.watch(paths.libs, libs);
 }
 
-const build = gulp.series(clean, gulp.parallel(styles, html, scripts, images, fonts, libs));
+function includeHTML() {
+  return gulp.src('src/**/*.html')
+    .pipe(fileInclude({
+      basepath: 'src'
+    }))
+    .pipe(gulp.dest('build'));
+}
+
+ 
+const build = gulp.series(clean, gulp.parallel(styles, html, scripts, images, fonts, libs, includeHTML));
+
 const watch = gulp.series(build, serve);
 
 export {
